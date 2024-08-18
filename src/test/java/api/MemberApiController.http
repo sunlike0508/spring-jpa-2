@@ -1,0 +1,34 @@
+### 맴버 저장 v1
+POST http://localhost:8080/api/v1/members
+Content-Type: application/json
+
+{
+  "name": "신선호"
+}
+
+
+### 맴버 저장 v2
+POST http://localhost:8080/api/v2/members
+Content-Type: application/json
+
+{
+  "name": "신선호3"
+}
+
+
+### 맴버 수정
+PUT http://localhost:8080/api/v2/members/52
+Content-Type: application/json
+
+{
+  "name": "신선호3-수정"
+}
+
+
+### 맴버 조회
+GET http://localhost:8080/api/v1/members
+Content-Type: application/json
+
+### 맴버 조회 v2
+GET http://localhost:8080/api/v2/members
+Content-Type: application/json
