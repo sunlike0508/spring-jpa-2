@@ -4,10 +4,11 @@ package jpabook.jpashop.domain;
 import java.util.ArrayList;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotEmpty;
@@ -20,7 +21,8 @@ import lombok.Setter;
 public class Member {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "member_id")
     private Long id;
 
     @NotEmpty
@@ -30,8 +32,14 @@ public class Member {
     private Address address;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "member")
     private List<Order> orders = new ArrayList<>();
 
 
+    public static Member createMember(String name, String city, String street, String zipcode) {
+        Member member = new Member();
+        member.setName(name);
+        member.setAddress(new Address(city, street, zipcode));
+        return member;
+    }
 }

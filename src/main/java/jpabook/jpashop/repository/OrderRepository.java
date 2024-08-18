@@ -29,7 +29,7 @@ public class OrderRepository {
     public List<Order> findAll(OrderSearch orderSearch) {
 
         if(orderSearch.getOrderStatus() == null || !StringUtils.hasText(orderSearch.getMemberName())) {
-            return em.createQuery("select o from Order o join o.member", Order.class).getResultList();
+            return em.createQuery("select o from Order o join o.member m", Order.class).getResultList();
         }
 
         return em.createQuery(
@@ -37,4 +37,12 @@ public class OrderRepository {
                         Order.class).setParameter("status", orderSearch.getOrderStatus())
                 .setParameter("name", orderSearch.getMemberName()).setMaxResults(1000).getResultList();
     }
+
+
+    public List<Order> findAllWithMemberDelivery() {
+
+        return em.createQuery("select o from Order o join fetch o.member m join fetch  o.delivery d", Order.class)
+                .getResultList();
+    }
+
 }
