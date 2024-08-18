@@ -3,6 +3,7 @@ package jpabook.jpashop.domain.item;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.Entity;
@@ -34,6 +35,7 @@ public abstract class Item {
     private int price;
     private int stockQuantity;
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "items", fetch = FetchType.LAZY)
     private List<Category> categories = new ArrayList<>();
 

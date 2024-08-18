@@ -45,4 +45,14 @@ public class OrderRepository {
                 .getResultList();
     }
 
+
+    public List<Order> findAllWithItem() {
+
+        // 스프링 3.0 이하 버전에는 distinct 붙어줘야 함
+        //        return em.createQuery("select distinct o from Order o join fetch o.member m join fetch o.delivery d"
+        //                + " join fetch o.orderItems oi join fetch oi.item i", Order.class).getResultList();
+
+        return em.createQuery("select o from Order o join fetch o.member m join fetch o.delivery d"
+                + " join fetch o.orderItems oi join fetch oi.item i", Order.class).getResultList();
+    }
 }

@@ -12,7 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @DiscriminatorValue("B")
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Book extends Item {
 
     private String author;
