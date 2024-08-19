@@ -22,8 +22,8 @@ public class IntiDb {
     public void init() {
         // 여기다가 dbInti1 로직을 넣어도 될것 같지만 스프링 어노테이션(PostConstruct) 아래에서 잘 안먹힌다.
 
-        //initService.dbInit1();
-        //initService.dbInit2();
+        initService.dbInit1();
+        initService.dbInit2();
     }
 
 
