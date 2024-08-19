@@ -68,6 +68,10 @@ class Repository {
 
 3) 컬렉션을 패치조인하면 페이징 API를 사용할 수 없다.
 
+    * Order 기준으로 Item 패치조인하면 Order는 하나인데 Item은 여러개인다. 근데 페이징 기준은 Order 기준으로 하려고 한다.
+    * 그러나 item이 여러개이기 때문에 item 기준으로 바뀐다.
+    * 해결은 아래 작성해둠
+
 4) fetch join의 대상은 on, where 등에서 필터링 조건으로 사용하면 안된다.
 
 ```text
@@ -118,6 +122,104 @@ org.hibernate.orm.query : HHH90003004: firstResult/maxResults specified with col
 
 2) 컬렉션 패치 조인은 1개만 사용할 수 있다. 둘 이상은 하면 안된다. 데이터가 부정합하게 조회될 수 있다.
 
+### 컬렉션 패치 조인 한계 돌파
+
+1) OnetoOne, ManytoOne 관계들만 모두 조인을 한다.
+2) 컬렉션은 지연 로딩으로 조회한다.
+3) 지연 로딩 성능 최적화를 위해 프로퍼티에 글로벌로 적용를 적용한다.
+
+```properties
+spring.jpa.properties.hibernate.default_batch_fetch_size=100
+
+```
+
+* @BatchSize을 통해 개별 컬렉션 최적화해도 된다. (ex : OneToMany가 걸린 orderItems), ManyToOne 관계는 class 위에 적용 (ex : item)
+
+#### 하이버네이트 6.2 이상에서 발견되는 batchSize 만큼 in 절에 null이 들어감
+
+버그는 아니고 하이버네이트에서 성능 최적화로 일부러 만들어진 쿼리
+
+```sql
+#
+batch size 5로 했을 경우
+select oi1_0.order_id, oi1_0.order_item_id, oi1_0.count, oi1_0.item_id, oi1_0.order_price
+from order_item oi1_0
+where oi1_0.order_id in (1, 2, NULL, NULL, NULL);
+```
+
+``` textmate
+스프링 부트 3.1 부터는 하이버네이트 6.2를 사용하는데요.
+
+하이버네이트 6.2 부터는 where in 대신에 array_contains를 사용합니다.
+
+where in 사용 문법
+
+where item.item_id in(?,?,?,?)
+
+array_contains 사용 문법
+
+where array_contains(?,item.item_id)
+
+침거러 where in에서 array_contains를 사용하도록 변경해도 결과는 완전히 동일합니다. 그런데 이렇게 변경하는 이유는 성능 최적화 때문입니다.
+
+select ... where item.item_id in(?)
+
+SQL을 실행할 때 데이터베이스는 SQL 구문을 이해하기 위해 SQL을 파싱하고 분석하는 등 여러가지 복잡한 일을 처리해야 합니다. 그래서 성능을 최적화하기 위해 이미 실행된 SQL 구문은 파싱된 결과를 내부에 캐싱하고 있습니다.
+
+이렇게 해두면 다음에 같은 모양의 SQL이 실행되어도 이미 파싱된 결과를 그대로 사용해서 성능을 최적화 할 수 있습니다.
+
+참고로 여기서 말하는 캐싱은 SQL 구문 자체를 캐싱한다는 뜻이지 SQL의 실행 결과를 캐싱한다는 뜻이 아닙니다.
+
+SQL 구문 차제를 캐싱하기 때문에 여기서 ?에 바인딩 되는 데이터는 변경되어도 캐싱된 SQL 결과를 그대로 사용할 수 있습니다.
+
+그런데 where in 쿼리는 동적으로 데이터가 변하는 것을 넘어서 SQL 구문 자체가 변해버리는 문제가 발생합니다.
+
+다음 예시는 in에 들어가는 데이터 숫자에 따라서 총 3개의 SQL구문이 생성됩니다.
+
+where item.item_id in(?)
+
+where item.item_id in(?,?)
+
+where item.item_id in(?,?,?,?)
+
+SQL 입장에서는 ?로 바인딩 되는 숫자 자체가 다르기 때문에 완전히 다른 SQL입니다. 따라서 총 3개의 SQL 구문이 만들어지고, 캐싱도 3개를 따로 해야 합니다. 이렇게 되면 성능 관점에서 좋지 않습니다.
+
+array_contains를 사용하면 이런 문제를 깔끔하게 해결할 수 있습니다.
+
+이 문법은 결과적으로 where in과 동일합니다. array_contains은 왼쪽에 배열을 넣는데, 배열에 들어있는 숫자가 오른쪽(item_id)에 있다면 참이 됩니다.
+
+예시) 다음 둘은 같다.
+
+select ... where array_contains([1,2,3],item.item_id)
+
+select ... where item.item_id in(1,2,3)
+
+이 문법은 ?에 바인딩 되는 것이 딱1개 입니다. 배열1개가 들어가는 것이지요.
+
+select ... where array_contains(?,item.item_id)
+
+따라서 배열에 들어가는 데이터가 늘어도 SQL 구문 자체가 변하지 않습니다. ?에는 배열 하나만 들어가면 되니까요.
+
+이런 방법을 사용하면 앞서 이야기한 동적으로 늘어나는 SQL 구문을 걱정하지 않아도 됩니다.
+
+결과적으로 데이터가 동적으로 늘어나도 같은 SQL 구문을 그대로 사용해서 성능을 최적화 할 수 있습니다.
+
+참고로 array_contains에서 default_batch_fetch_size에 맞추어 배열에 null 값을 추가하는데, 이 부분은 아마도 특정 데이터베이스에 따라서 배열의 데이터 숫자가 같아야 최적화가 되기 때문에 그런 것으로 추정됩니다.
+```
+
+#### @EqualsAndHashCode
+
+equals 는 객체가 같은 객체인지 비교(주소값 비교) : 동등성
+
+hashCode는 객체안의 내부 필드 값이 같은지 비교 : 동일
+
+```textmate
+Equality made easy: Generates hashCode and equals implementations from the fields of your object.
+클래스 위에 정의하면, 컴파일 시점에 자동으로 객체의 필드로부터 HashCode와 Equals를 오버라이딩하여 구현해주는 애노테이션
+클래스에 있는 모든 필드들에 대한 비교를 수행함
+
+of 속성 : 특정 값만 정해서 equals, hashCode 비교
+```
 
 
 

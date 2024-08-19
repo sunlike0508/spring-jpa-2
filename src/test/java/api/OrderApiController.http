@@ -11,3 +11,25 @@ Content-Type: application/json
 ### 주문 조회 v3
 GET http://localhost:8080/api/v3/orders
 Content-Type: application/json
+
+
+### 주문 조회 v3.1
+GET http://localhost:8080/api/v3.1/orders
+Content-Type: application/json
+
+### 주문 조회 v4
+GET http://localhost:8080/api/v4/orders
+Content-Type: application/json
+
+### 주문 조회 v5
+GET http://localhost:8080/api/v5/orders
+Content-Type: application/json
+
+### 주문 조회 v6
+GET http://localhost:8080/api/v6/orders
+Content-Type: application/json
+
+### 주문 조회 v6.1
+GET http://localhost:8080/api/v6.1/orders
+Content-Type: application/json
+
