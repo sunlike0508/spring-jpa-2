@@ -237,7 +237,7 @@ WARN 79130 --- [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spri
 
 관례상 OSIV라고 한다.
 
-![](../../../../var/folders/5q/y03lgw592353dvzjthlx785r0000gn/T/TemporaryItems/NSIRD_screencaptureui_OZ6QwX/Screenshot 2024-08-19 at 14.56.23.png)
+<img width="913" alt="Screenshot 2024-08-19 at 15 16 12" src="https://github.com/user-attachments/assets/b1937b2c-ed70-47a2-9101-d3a1d34421fb">
 
 OSIV 전략은 트랜잭션 시작처럼 최초 데이터베이스 커넥션 시작시점부터 API 응답이 끝날때까지 영속성 컨텍스트와 DB 커넥션을 유지힌다.
 
@@ -251,7 +251,7 @@ OSIV 전략은 트랜잭션 시작처럼 최초 데이터베이스 커넥션 시
 
 트랜잭션 안에서 모든 db 처리(지연로딩)를 끝내야 한다.
 
-![](../../Desktop/Screenshot 2024-08-19 at 15.03.10.png)
+<img width="902" alt="Screenshot 2024-08-19 at 15 03 10" src="https://github.com/user-attachments/assets/204e0ce8-d8ce-4680-87c7-f084313ac445">
 
 ### 해결책
 
