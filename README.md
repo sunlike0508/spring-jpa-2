@@ -221,13 +221,41 @@ Equality made easy: Generates hashCode and equals implementations from the field
 of 속성 : 특정 값만 정해서 equals, hashCode 비교
 ```
 
+---
 
+# OSIV (Open Session In View) : 하이버네이트
 
+Open EntityManager In View : JPA
 
+Spring 어플리케이션을 키면 아래와 같은 로그를 볼수 있다.
 
+```shell
+WARN 79130 --- [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+```
 
+### 상세 설명
 
+관례상 OSIV라고 한다.
 
+![](../../../../var/folders/5q/y03lgw592353dvzjthlx785r0000gn/T/TemporaryItems/NSIRD_screencaptureui_OZ6QwX/Screenshot 2024-08-19 at 14.56.23.png)
+
+OSIV 전략은 트랜잭션 시작처럼 최초 데이터베이스 커넥션 시작시점부터 API 응답이 끝날때까지 영속성 컨텍스트와 DB 커넥션을 유지힌다.
+
+그래서 지연로딩이 가능한 것이다. (repository로 최초 db 조회 후에 api 요청이 끝날때까지 커넥션을 유지하면서 다른 쿼리 커맨드가 db 커넥션을 사용할 수 있게 한다.)
+
+### 단점 : 너무 오래동안 커넥션을 잡고 있다.
+
+그래서 커넥션 풀이 마를 수 있다. 그렇다면 요청이 많아지면 대기 시간이 길어진다.
+
+### OSIV를 OFF 하면?
+
+트랜잭션 안에서 모든 db 처리(지연로딩)를 끝내야 한다.
+
+![](../../Desktop/Screenshot 2024-08-19 at 15.03.10.png)
+
+### 해결책
+
+조회와 명령의 쿼리를 분리. 그래서 실시간이 많은 곳들에 대해서 트랜잭션을 범위를 최소화하고 OSIV를 off 한다.
 
 
 
